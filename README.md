@@ -131,11 +131,17 @@ node index.js validate /path/to/workspace
 # Skip specific validators
 node index.js validate --skip-rust
 node index.js validate --skip-node
-node index.js validate --skip-licenses
-node index.js validate --skip-secrets
+node index.js validate --skip-biome
+node index.js validate --skip-ci
+node index.js validate --skip-worktrees
+node index.js validate --skip-docker
 
 # Combine skip flags
 node index.js validate --skip-rust --skip-licenses
+
+# Output JSON results to file
+node index.js validate --json
+node index.js validate --json ./results.json
 ```
 
 ### REST API
@@ -151,10 +157,14 @@ curl -X POST -H "Authorization: Bearer ghp_jaskier_simulator_token" \
 Response:
 ```json
 {
-  "passed": 5,
+  "passed": 8,
   "failed": 1,
   "warned": 2,
+  "skipped": 0,
   "ok": false,
+  "timings": [
+    { "name": "Node.js / pnpm", "ms": 5, "skipped": false }
+  ],
   "results": [
     { "name": "packageManager field", "status": "pass" },
     { "name": "cargo check", "status": "fail", "errors": ["Trait bound not satisfied"] }
@@ -166,10 +176,16 @@ Response:
 
 | Validator | Checks | Skip Flag |
 |-----------|--------|-----------|
-| **Node.js / pnpm** | `packageManager` field, `pnpm-lock.yaml`, `pnpm-workspace.yaml` | `--skip-node` |
+| **Node.js / pnpm** | `packageManager` field, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `bun` in scripts | `--skip-node` |
 | **Secrets Scan** | AWS keys, OpenAI/Stripe keys, GitHub tokens, xAI keys, hardcoded passwords | `--skip-secrets` |
+| **Biome Lint/Format** | `biome.json` validity, `vcs.useIgnoreFile`, nested configs, `biome check` | `--skip-biome` |
+| **CI Workflows** | Hardcoded secrets, pnpm cache, cargo scope, native deps, deprecated actions | `--skip-ci` |
+| **Worktrees** | Stale `.claude/worktrees/`, orphaned git worktrees | `--skip-worktrees` |
+| **Docker** | `:latest` tags, missing `.dockerignore`, ENV secrets, HEALTHCHECK, USER | `--skip-docker` |
+| **Rust Formatting** | `cargo fmt --all --check` | `--skip-rust` |
 | **Rust Workspace** | `cargo check`, `cargo clippy`, `cargo fmt --check`, license fields in Cargo.toml | `--skip-rust` |
 | **License Compliance** | `cargo deny check licenses` (unlicensed crates, denied licenses) | `--skip-licenses` |
+| **Vercel Deployments** | `vercel.json`, build script, stale `.js` shadows, committed build output | `--skip-vercel` |
 
 ### Validator Unit Tests
 
@@ -177,7 +193,7 @@ Response:
 node src/validators/test-validators.js
 ```
 
-Tests individual validators with mock data without requiring cargo, pnpm, or git.
+Tests 26 cases across all validators with mock data — no cargo, pnpm, or git required.
 
 ## Testing
 
@@ -185,7 +201,7 @@ Tests individual validators with mock data without requiring cargo, pnpm, or git
 node test-simulator.js
 ```
 
-Runs 17 smoke tests covering all major endpoints, auth, pagination, error handling, and CI validation.
+Runs 17 smoke tests covering all major endpoints, auth, pagination, error handling, and CI validation. Validator unit tests cover 26 cases across 10 validators.
 
 ## Configuration
 

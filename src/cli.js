@@ -97,6 +97,11 @@ export async function run() {
     .option('--skip-licenses', 'Skip license checks')
     .option('--skip-secrets', 'Skip secrets scan')
     .option('--skip-vercel', 'Skip Vercel checks')
+    .option('--skip-biome', 'Skip Biome lint/format checks')
+    .option('--skip-ci', 'Skip CI workflow checks')
+    .option('--skip-worktrees', 'Skip worktree checks')
+    .option('--skip-docker', 'Skip Docker checks')
+    .option('--json [path]', 'Write results as JSON (optional: file path)')
     .action(async (workspace, opts) => {
       const workspacePath = workspace || process.cwd();
       const { runAllValidators } = await import('./validators/runner.js');
@@ -106,6 +111,11 @@ export async function run() {
         skipVercel: opts.skipVercel,
         skipLicenses: opts.skipLicenses,
         skipSecrets: opts.skipSecrets,
+        skipBiome: opts.skipBiome,
+        skipCi: opts.skipCi,
+        skipWorktrees: opts.skipWorktrees,
+        skipDocker: opts.skipDocker,
+        json: opts.json,
       });
       process.exit(result.ok ? 0 : 1);
     });
