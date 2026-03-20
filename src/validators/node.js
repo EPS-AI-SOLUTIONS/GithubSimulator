@@ -31,5 +31,24 @@ export function validateNode(workspacePath) {
     results.push({ name: 'pnpm-workspace.yaml', status: 'warn', errors: ['Missing pnpm-workspace.yaml — pnpm may warn about "workspaces" field'] });
   }
 
+  // 4. Check for "bun" in scripts (CI has no bun — use "node" or "npx")
+  if (existsSync(pkgPath)) {
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+    const scripts = pkg.scripts || {};
+    const bunScripts = Object.entries(scripts)
+      .filter(([, cmd]) => /\bbun\b/.test(cmd))
+      .map(([name, cmd]) => `"${name}": "${cmd}"`);
+    if (bunScripts.length > 0) {
+      results.push({
+        name: 'bun in scripts',
+        status: 'fail',
+        errors: [`${bunScripts.length} script(s) use "bun" which is not available on CI: ${bunScripts.slice(0, 3).join(', ')}${bunScripts.length > 3 ? '...' : ''}`],
+        fix: 'Replace "bun" with "node" or "npx" in package.json scripts (especially "prepare")',
+      });
+    } else {
+      results.push({ name: 'bun in scripts', status: 'pass' });
+    }
+  }
+
   return results;
 }
