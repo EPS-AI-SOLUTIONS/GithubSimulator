@@ -96,12 +96,14 @@ export async function run() {
     .option('--skip-node', 'Skip Node.js checks')
     .option('--skip-licenses', 'Skip license checks')
     .option('--skip-secrets', 'Skip secrets scan')
+    .option('--skip-vercel', 'Skip Vercel checks')
     .action(async (workspace, opts) => {
       const workspacePath = workspace || process.cwd();
       const { runAllValidators } = await import('./validators/runner.js');
       const result = await runAllValidators(workspacePath, {
         skipRust: opts.skipRust,
         skipNode: opts.skipNode,
+        skipVercel: opts.skipVercel,
         skipLicenses: opts.skipLicenses,
         skipSecrets: opts.skipSecrets,
       });
