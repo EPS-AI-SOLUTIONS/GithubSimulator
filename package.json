@@ -1,0 +1,23 @@
+{
+  "name": "github-simulator",
+  "version": "1.0.0",
+  "description": "Local GitHub API simulator for Jaskier Workspace",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js start",
+    "dev": "node --watch index.js start",
+    "test": "node test-simulator.js",
+    "seed": "node index.js seed"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "4.21.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "uuid": "^11.1.0"
+  }
+}
