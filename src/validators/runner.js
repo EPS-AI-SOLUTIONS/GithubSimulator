@@ -1,8 +1,10 @@
 import chalk from 'chalk';
 import { validateRust } from './rust.js';
+import { validateFmt } from './fmt.js';
 import { validateNode } from './node.js';
 import { validateLicenses } from './licenses.js';
 import { validateSecrets } from './secrets.js';
+import { validateVercel } from './vercel.js';
 
 export async function runAllValidators(workspacePath, options = {}) {
   const startTime = Date.now();
@@ -13,8 +15,10 @@ export async function runAllValidators(workspacePath, options = {}) {
   const validators = [
     { name: 'Node.js / pnpm', fn: () => validateNode(workspacePath), skip: options.skipNode },
     { name: 'Secrets Scan', fn: () => validateSecrets(workspacePath), skip: options.skipSecrets },
+    { name: 'Rust Formatting', fn: () => validateFmt(workspacePath), skip: options.skipRust },
     { name: 'Rust Workspace', fn: () => validateRust(workspacePath), skip: options.skipRust },
     { name: 'License Compliance', fn: () => validateLicenses(workspacePath), skip: options.skipLicenses },
+    { name: 'Vercel Deployments', fn: () => validateVercel(workspacePath), skip: options.skipVercel },
   ];
 
   for (const v of validators) {
