@@ -96,6 +96,16 @@ export function createServer() {
     });
   });
 
+  // --- CI Validation endpoint ---
+  app.post('/validate', async (req, res) => {
+    const { workspace_path } = req.body;
+    if (!workspace_path) return res.status(400).json({ error: 'workspace_path required' });
+
+    const { runAllValidators } = await import('./validators/runner.js');
+    const result = await runAllValidators(workspace_path);
+    res.json(result);
+  });
+
   // --- Organization repos (mounted before /repos to avoid conflict) ---
   app.get('/orgs/:org/repos', (req, res) => {
     const { org } = req.params;

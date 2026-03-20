@@ -88,6 +88,26 @@ export async function run() {
       logger.success('Seed data loaded. Run "node index.js start" to start the server.');
     });
 
+  // --- validate command ---
+  program
+    .command('validate [workspace]')
+    .description('Run CI validators against a workspace (default: auto-detect)')
+    .option('--skip-rust', 'Skip Rust checks')
+    .option('--skip-node', 'Skip Node.js checks')
+    .option('--skip-licenses', 'Skip license checks')
+    .option('--skip-secrets', 'Skip secrets scan')
+    .action(async (workspace, opts) => {
+      const workspacePath = workspace || process.cwd();
+      const { runAllValidators } = await import('./validators/runner.js');
+      const result = await runAllValidators(workspacePath, {
+        skipRust: opts.skipRust,
+        skipNode: opts.skipNode,
+        skipLicenses: opts.skipLicenses,
+        skipSecrets: opts.skipSecrets,
+      });
+      process.exit(result.ok ? 0 : 1);
+    });
+
   // --- reset command ---
   program
     .command('reset')

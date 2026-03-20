@@ -195,6 +195,28 @@ async function runTests() {
     check(closedIssues.status === 200, 'GET closed issues returns 200');
     check(Array.isArray(closedIssues.body), 'closed issues is an array');
 
+    // 16. CI Validator — POST /validate returns results
+    console.log('\n16. CI Validator endpoint');
+    const validateResult = await request(port, '/validate', {
+      method: 'POST',
+      body: { workspace_path: process.cwd() },
+    });
+    check(validateResult.status === 200, 'POST /validate returns 200');
+    check(typeof validateResult.body.passed === 'number', 'result has passed count');
+    check(typeof validateResult.body.failed === 'number', 'result has failed count');
+    check(typeof validateResult.body.warned === 'number', 'result has warned count');
+    check(Array.isArray(validateResult.body.results), 'result has results array');
+    check(typeof validateResult.body.ok === 'boolean', 'result has ok boolean');
+
+    // 17. CI Validator — missing workspace_path returns 400
+    console.log('\n17. CI Validator error handling');
+    const validateBad = await request(port, '/validate', {
+      method: 'POST',
+      body: {},
+    });
+    check(validateBad.status === 400, 'POST /validate without workspace_path returns 400');
+    check(validateBad.body.error === 'workspace_path required', 'error message is correct');
+
   } finally {
     server.close();
   }

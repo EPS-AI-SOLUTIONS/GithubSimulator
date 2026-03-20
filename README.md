@@ -115,13 +115,77 @@ The default seeded token is `ghp_jaskier_simulator_token`. Any other token is ac
 - **Workflow Runs**: 2 (Workspace CI, Deploy)
 - **File Contents**: Cargo.toml, package.json, CLAUDE.md, root directory listing
 
+## CI Validation
+
+Pre-push validation module that catches common CI failures locally before pushing to GitHub.
+
+### CLI
+
+```bash
+# Validate the current directory
+node index.js validate
+
+# Validate a specific workspace path
+node index.js validate /path/to/workspace
+
+# Skip specific validators
+node index.js validate --skip-rust
+node index.js validate --skip-node
+node index.js validate --skip-licenses
+node index.js validate --skip-secrets
+
+# Combine skip flags
+node index.js validate --skip-rust --skip-licenses
+```
+
+### REST API
+
+```bash
+# POST /validate — run all CI validators against a workspace
+curl -X POST -H "Authorization: Bearer ghp_jaskier_simulator_token" \
+  -H "Content-Type: application/json" \
+  -d '{"workspace_path": "/path/to/workspace"}' \
+  http://localhost:8200/validate
+```
+
+Response:
+```json
+{
+  "passed": 5,
+  "failed": 1,
+  "warned": 2,
+  "ok": false,
+  "results": [
+    { "name": "packageManager field", "status": "pass" },
+    { "name": "cargo check", "status": "fail", "errors": ["Trait bound not satisfied"] }
+  ]
+}
+```
+
+### Validators
+
+| Validator | Checks | Skip Flag |
+|-----------|--------|-----------|
+| **Node.js / pnpm** | `packageManager` field, `pnpm-lock.yaml`, `pnpm-workspace.yaml` | `--skip-node` |
+| **Secrets Scan** | AWS keys, OpenAI/Stripe keys, GitHub tokens, xAI keys, hardcoded passwords | `--skip-secrets` |
+| **Rust Workspace** | `cargo check`, `cargo clippy`, `cargo fmt --check`, license fields in Cargo.toml | `--skip-rust` |
+| **License Compliance** | `cargo deny check licenses` (unlicensed crates, denied licenses) | `--skip-licenses` |
+
+### Validator Unit Tests
+
+```bash
+node src/validators/test-validators.js
+```
+
+Tests individual validators with mock data without requiring cargo, pnpm, or git.
+
 ## Testing
 
 ```bash
 node test-simulator.js
 ```
 
-Runs 15 smoke tests covering all major endpoints, auth, pagination, and error handling.
+Runs 17 smoke tests covering all major endpoints, auth, pagination, error handling, and CI validation.
 
 ## Configuration
 
